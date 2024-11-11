@@ -71,7 +71,8 @@ int main()
 {
     CPU core;
 
-    system("printf '\\e[8;60;240t'");  // Sends escape code to resize terminal
+    system("printf '\\e[8;46;203t'");  // Sends escape code to resize terminal
+    flushinp();                        // Flush input buffer
 
     // Initialize ncurses
     initscr();
@@ -116,19 +117,18 @@ int main()
     char input[256]; // Adjust the size as needed
     bool hasStoped = false;
 
-    cbreak();
-
     terminal = create_newPanel(5, (width / 7) * 4, 0, (width / 7) * 1, "Terminal panel");
     memory = create_newPanel(height - 3, (width / 7) * 1, 0, 0, "Memory panel");
     debug = create_newPanel(height - 8, (width / 7) * 4, 5, (width / 7) * 1, "Editor panel");
     registers = create_newPanel((height / 5) * 1, ((width / 7) * 2), 0, (width / 7) * 5, "Registors panel");
-    program = create_newPanel(((height / 5) * 4) - 3, ((width / 7) * 2), (height / 5) * 1, (width / 7) * 5, "Stack panel");
+    program = create_newPanel(((height / 5) * 4) - 2, ((width / 7) * 2), (height / 5) * 1, (width / 7) * 5, "Stack panel");
     info = create_newPanel(3, width, height - 3, 0, "Info panel");
 
     echo();
 
     do
     {
+        flushinp();
         refresh();
         print(terminal, 1, 1, "Enter the file name");
         get_user_input(terminal, input, sizeof(input) / sizeof(input[0]));
@@ -144,9 +144,9 @@ int main()
         else
         {
             fd = open_file(input);
-            if (fd == -1)
+            if (fd <= -1)
             {
-                printColor(terminal, 1, 3, 1, "Error: File does not exist                              ");
+                printColor(terminal, 1, 2, 1, "Error: File does not exist                              ");
                 FileExists = false;
             }
             else
@@ -186,12 +186,13 @@ int main()
     bool triedExit = false;
     bool showInfo = true;
     int temp = 0;
+    int speed = 300;
 
     while (!hasStoped)
     {
         printREGISTORS(core, registers);
-        displayMemory(memory, 138, core);
-        displayStack(program, 106, core);
+        displayMemory(memory, (getmaxy(memory) * 4) - 8, core);
+        displayStack(program, (getmaxy(program) * 4) - 8, core);
         int ch = getch(); // Get user input, non-blocking due to nodelay
 
         if ((ch == 'f' || ch == 'F'))
@@ -227,7 +228,13 @@ int main()
                 printREGISTORS(core, registers);
                 displayMemory(memory, 138, core);
                 displayStack(program, 106, core);
-                sleep_ms(300);
+                sleep_ms(speed);
+                if (speed < 100)
+                {
+                    speed = 100;
+                } else {
+                    speed -= 5;
+                }
             }
             print(info, 1, 1, "                                                                                                    ");
             printColor(info, 3, 1, 1, "Info: Program has reached HALT! Press [Q] to exit");
