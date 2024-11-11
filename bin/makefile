@@ -1,13 +1,13 @@
 # Compiler settings
 CC = g++  # Default to g++
-CFLAGS = -std=c++17 #-municode
+CFLAGS = -std=c++17 -municode
 LDFLAGS = -lncurses
 
 # Output executable name
 OUT = ASM
 
 # Source files
-SRC = ../src/main.cpp ../src/panels/window.cpp ../src/files/rw.cpp
+SRC = ../src/ui.cpp #../src/panels/window.cpp ../src/files/rw.cpp
 
 # OS detection
 ifeq ($(OS),Windows_NT)

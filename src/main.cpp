@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <iostream>
+#include <cstdint>
 
 #include "panels/window.h"
 #include "files/rw.h"
@@ -59,7 +60,6 @@ void write(WINDOW *win, std::string program, CPU &core)
     oss << std::setw(3) << line << ": " << program;
     std::string line_number = oss.str();
     const char *text = line_number.c_str();
-
     if (line < getmaxy(win) - 1)
     {
         print(win, line, 1, text);
