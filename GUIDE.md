@@ -145,6 +145,8 @@ The emulator supports the following registers. Each register is associated with 
 Here’s an example of a simple ASM program:
 
 ```asm
+
+start:
 load a8 10       ; Load value 10 into register a8
 load b8 5        ; Load value 5 into register b8
 addi a8 5        ; Add 5 to the value in register a8 (a8 becomes 15)
