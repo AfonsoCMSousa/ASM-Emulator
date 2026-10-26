@@ -34,9 +34,9 @@ void print16(WINDOW *local_win, int y, int x, const char *text, int num);
 
 void printff(WINDOW *local_win, int y, int x, const char *text, float num);
 
-void displayMemory(WINDOW *local_win, int mem_size, CPU &core);
+void displayMemory(WINDOW *local_win, int mem_size, const CPU &core);
 
-void displayStack(WINDOW *local_win, int stack_size, CPU &core);
+void displayStack(WINDOW *local_win, int stack_size, const CPU &core);
 
 void printColor(WINDOW *local_win, int color, int y, int x, const char *text);
 

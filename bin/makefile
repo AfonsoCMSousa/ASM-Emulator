@@ -1,13 +1,18 @@
 # Compiler settings
-CC = g++  # Default to g++
-CFLAGS = -std=c++17 -municode
+CC = g++
+CFLAGS = -std=c++17 -Wall -Wextra
 LDFLAGS = -lncurses
 
 # Output executable name
 OUT = ASM
 
 # Source files
-SRC = ../src/ui.cpp #../src/panels/window.cpp ../src/files/rw.cpp
+SRC = ../src/main.cpp ../src/panels/window.cpp ../src/files/rw.cpp
+HDR = ../src/cpu.h ../src/panels/window.h ../src/files/rw.h
+
+# Test runner
+TEST_SRC = ../tests/cpu_test.cpp
+TEST_OUT = cpu_test
 
 # OS detection
 ifeq ($(OS),Windows_NT)
@@ -20,19 +25,28 @@ else
     EXE =
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Darwin)
-        CFLAGS += -I/usr/local/include
-        LDFLAGS += -L/usr/local/lib -lncurses -static-libgcc -static-libstdc++
         CC = clang++
+        CFLAGS += -I/usr/local/include
+        LDFLAGS = -L/usr/local/lib -lncurses
     endif
 endif
+
+.PHONY: all test clean
 
 # All target
 all: $(OUT)$(EXE)
 
 # Build target
-$(OUT)$(EXE): $(SRC)
+$(OUT)$(EXE): $(SRC) $(HDR)
 	$(CC) $(CFLAGS) $(SRC) -o $(OUT)$(EXE) $(LDFLAGS)
+
+# Headless assembler/CPU tests (no ncurses needed)
+test: $(TEST_OUT)$(EXE)
+	"./$(TEST_OUT)$(EXE)"
+
+$(TEST_OUT)$(EXE): $(TEST_SRC) ../src/cpu.h
+	$(CC) $(CFLAGS) $(TEST_SRC) -o $(TEST_OUT)$(EXE)
 
 # Clean target
 clean:
-	$(RM) $(OUT)$(EXE)
+	$(RM) $(OUT)$(EXE) $(TEST_OUT)$(EXE)

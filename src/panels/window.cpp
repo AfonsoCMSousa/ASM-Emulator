@@ -43,13 +43,13 @@ void destroy_Panel(WINDOW *local_win)
 
 void setTitle(WINDOW *local_win, const char *title)
 {
-    mvwprintw(local_win, 0, 2, title);
+    mvwprintw(local_win, 0, 2, "%s", title);
     wrefresh(local_win);
 }
 
 void print(WINDOW *local_win, int y, int x, const char *text)
 {
-    mvwprintw(local_win, y, x + 1, text);
+    mvwprintw(local_win, y, x + 1, "%s", text);
     wrefresh(local_win);
 }
 
@@ -77,7 +77,7 @@ void printff(WINDOW *local_win, int y, int x, const char *text, float num)
     wrefresh(local_win);
 }
 
-void displayMemory(WINDOW *local_win, int mem_size, CPU &core)
+void displayMemory(WINDOW *local_win, int mem_size, const CPU &core)
 {
     uint16_t pc = core.getPC();
 
@@ -108,7 +108,7 @@ void displayMemory(WINDOW *local_win, int mem_size, CPU &core)
     }
 }
 
-void displayStack(WINDOW *local_win, int stack_size, CPU &core)
+void displayStack(WINDOW *local_win, int stack_size, const CPU &core)
 {
     if (stack_size > 256) // Check if the showed memory insnt bigger than the stack
     {
@@ -143,7 +143,7 @@ void displayStack(WINDOW *local_win, int stack_size, CPU &core)
 void printColor(WINDOW *local_win, int color, int y, int x, const char *text)
 {
     wattron(local_win, COLOR_PAIR(color));
-    mvwprintw(local_win, y, x + 1, text);
+    mvwprintw(local_win, y, x + 1, "%s", text);
     wattroff(local_win, COLOR_PAIR(color));
     wrefresh(local_win);
 }

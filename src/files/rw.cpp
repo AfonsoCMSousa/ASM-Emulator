@@ -14,10 +14,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <limits.h>
+#ifndef PATH_MAX
 #define PATH_MAX 1024
 #endif
+#endif
 
-#define BUFFER_SIZE 1024
 
 // Function to open the file
 intptr_t open_file(const char* filename) {
@@ -39,6 +41,13 @@ intptr_t open_file(const char* filename) {
     }
     return (intptr_t)hFile;
 #else
+    // Try the path as given first (relative to the current directory)
+    int cwdFd = open(filename, O_RDONLY);
+    if (cwdFd != -1) {
+        return cwdFd;
+    }
+
+    // Fall back to the directory the executable lives in
 #ifdef __APPLE__
     // macOS-specific way to get the executable path
     char result[PATH_MAX];
@@ -51,8 +60,7 @@ intptr_t open_file(const char* filename) {
 #else
     // Linux-specific way to get the executable path
     char result[PATH_MAX];
-    ssize_t count = readlink("prco/self/exe", result, PATH_MAX);
-    count = readlink("/proc/self/exe", result, PATH_MAX);
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
     if (count == -1) {
         return -3;
     }
@@ -139,6 +147,12 @@ std::vector<std::string> read_lines(const char *filename)
 #endif
 
     close_file(fd);
+
+    // Keep the last line even if the file doesn't end with a newline
+    if (!current_line.empty())
+    {
+        lines.push_back(current_line);
+    }
 
     if (lines.empty())
     {
