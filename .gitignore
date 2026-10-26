@@ -1,2 +1,6 @@
 .DS_Store
 .vscode/c_cpp_properties.json
+
+# Build outputs
+bin/cpu_test
+bin/cpu_test.exe

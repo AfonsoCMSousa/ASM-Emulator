@@ -8,149 +8,179 @@ This is a simple and fun project designed to give you an introduction to assembl
 ## Table of Contents
 
 - [How to Get Started](#how-to-get-started)
-- [Available Commands (Opcodes)](#available-commands-opcodes)
+- [Syntax](#syntax)
 - [Registers](#registers)
+- [Available Commands (Opcodes)](#available-commands-opcodes)
 - [Example Program](#example-program)
 - [How to Run](#how-to-run)
-- [Troubleshooting](#troubleshooting)
+- [Errors and Faults](#errors-and-faults)
+- [Instruction Encoding](#instruction-encoding)
 
 ## How to Get Started
 
 1. **Create a `.s` file**: Write your assembly-like program using the opcodes listed below.
-2. **Load the program**: Run the program using the emulator, which will read and execute your `.s` file.
+2. **Load the program**: Run the emulator and type the file name without the `.s` extension. The file is looked up in the current directory first, then next to the executable.
 
 ---
 
-## Available Commands (Opcodes)
+## Syntax
 
-Here is a list of available commands you can use in your ASM program. Each command corresponds to a specific operation.
+```asm
+; This is a comment. Everything after ';' or '#' is ignored.
 
-### **1. load**
-- **Description**: Loads an immediate value into a register.
-- **Usage**:  
-  `load <register> <value>`  
-  Example: `load a8 13` — Loads the value `13` into the 8-bit register `a8`.
+start:              ; a label on its own line
+loop:   addi a8 1   ; a label followed by an instruction
+        bne a8, b8, loop   ; commas between operands are optional
+```
 
----
-
-### **2. addi**
-- **Description**: Adds an immediate value to a register.
-- **Usage**:  
-  `addi <register> <value>`  
-  Example: `addi a8 5` — Adds `5` to the value in the 8-bit register `a8`.
-
----
-
-### **3. subb**
-- **Description**: Subtracts an immediate value from a register.
-- **Usage**:  
-  `subb <register> <value>`  
-  Example: `subb b16 3` — Subtracts `3` from the value in the 16-bit register `b16`.
-
----
-
-### **4. jmp**
-- **Description**: Unconditional jump to a specific memory address. Execution continues from the specified address.
-- **Usage**:  
-  `jmp [address]`  
-  Example: `jmp [0x0040]` — Jumps to memory location `0x0040`.
-
----
-
-### **5. push**
-- **Description**: Pushes the value of a register onto the stack.
-- **Usage**:  
-  `push <register>`  
-  Example: `push a8` — Pushes the value in the 8-bit register `a8` onto the stack.
-
----
-
-### **6. pop**
-- **Description**: Pops the top value from the stack into a register.
-- **Usage**:  
-  `pop <register>`  
-  Example: `pop b16` — Pops the top value from the stack into the 16-bit register `b16`.
-
----
-
-### **7. beq**
-- **Description**: Branches to the specified address if two registers are equal.
-- **Usage**:  
-  `beq <reg1> <reg2> [address]`  
-  Example: `beq a8 b8 [0x0100]` — If `a8` equals `b8`, jumps to address `0x0100`.
-
----
-
-### **8. bne**
-- **Description**: Branches to the specified address if two registers are not equal.
-- **Usage**:  
-  `bne <reg1> <reg2> [address]`  
-  Example: `bne a16 b16 [0x0100]` — If `a16` does not equal `b16`, jumps to address `0x0100`.
-
----
-
-### **9. beqz**
-- **Description**: Branches to the specified address if the register value is zero.
-- **Usage**:  
-  `beqz <register> [address]`  
-  Example: `beqz c8 [0x0080]` — If `c8` is `0`, jumps to address `0x0080`.
-
----
-
-### **10. stl**
-- **Description**: Stores the value from a register into a memory location.
-- **Usage**:  
-  `stl <register> [address]`  
-  Example: `stl a8 [0x2000]` — Stores the value from `a8` into memory location `0x2000`.
-
----
-
-### **11. halt**
-- **Description**: Halts program execution.
-- **Usage**:  
-  `halt`  
-  Example: `halt` — Stops the program execution.
-
----
-
-### **12. null**
-- **Description**: No operation (NOP). It does nothing and is used as a placeholder.
-- **Usage**:  
-  `null`  
-  Example: `null` — Skips this instruction.
+- **One instruction per line.** Blank lines are fine.
+- **Labels** are `name:` at the start of a line. Names use letters, digits and `_`, can't start with a digit, and can't be a register or instruction name.
+- **Numbers** can be decimal (`42`), hex (`0x2A`), binary (`0b101010`) or negative (`-1`).
+- **Jump/branch targets** can be a label (`loop` or `[loop]`) or a byte address in memory (`0x08` or `[0x08]`). Every instruction is 4 bytes, so addresses must be multiples of 4: the first instruction is at `0x00`, the second at `0x04`, and so on. Labels are easier!
 
 ---
 
 ## Registers
 
-The emulator supports the following registers. Each register is associated with a specific bit width or type:
+| Register | Size | Notes |
+|---|---|---|
+| `a8` `b8` `c8` `d8` | 8-bit | values 0–255, wrap around on overflow |
+| `a16` `b16` | 16-bit | values 0–65535, wrap around on overflow |
+| `af` `bf` `cf` | float | reserved: no instruction can use them yet |
 
-- **a8**: 8-bit register `a`
-- **b8**: 8-bit register `b`
-- **c8**: 8-bit register `c`
-- **d8**: 8-bit register `d`
+Integer registers of different sizes can be mixed in one instruction. The result is cut down to the size of the destination register (for example `addr a8 a16 b8` keeps only the low 8 bits).
 
-- **a16**: 16-bit register `a`
-- **b16**: 16-bit register `b`
-- **c16**: 16-bit register `c`
-- **d16**: 16-bit register `d`
+---
 
-- **af**: Floating-point register `a`
-- **bf**: Floating-point register `b`
+## Available Commands (Opcodes)
+
+### **load**
+- **Description**: Loads a value into a register.
+- **Usage**: `load <reg> <value>`
+- **Range**: −128 to 255 for 8-bit registers, −32768 to 65535 for 16-bit ones (negative values are stored as two's complement).
+- **Example**: `load a16 0x1234`
+
+### **addi**
+- **Description**: Adds an immediate value (0–255).
+- **Usage**: `addi <rd> <rs> <value>` sets `rd = rs + value`, or the short form `addi <rd> <value>` sets `rd = rd + value`.
+- **Example**: `addi a8 a8 5` or `addi a8 5`
+
+### **subb**
+- **Description**: Subtracts an immediate value (0–255).
+- **Usage**: `subb <rd> <rs> <value>` or `subb <rd> <value>`
+- **Example**: `subb b16 3`
+
+### **addr** / **subr**
+- **Description**: Adds / subtracts two registers.
+- **Usage**: `addr <rd> <rs> <rt>` sets `rd = rs + rt`; `subr <rd> <rs> <rt>` sets `rd = rs - rt`.
+- **Example**: `addr c8 a8 b8`
+
+### **jmp**
+- **Description**: Unconditional jump.
+- **Usage**: `jmp <target>`
+- **Example**: `jmp loop`
+
+### **beq** / **bne**
+- **Description**: Branches if two registers are equal / not equal.
+- **Usage**: `beq <r1> <r2> <target>`
+- **Limit**: the target must be one of the first 256 instructions (address `0x3FC` or lower). Use `beqz` or `jmp` to go further.
+- **Example**: `bne a8 b8 loop`
+
+### **bgt** (also `stl`)
+- **Description**: Branches if `r1` is **strictly greater** than `r2`. `stl` is the old name and still works.
+- **Usage**: `bgt <r1> <r2> <target>`
+- **Limit**: same as `beq`.
+- **Example**: `bgt b8 a8 loop` loops while `b8 > a8`.
+
+### **beqz**
+- **Description**: Branches if a register is zero.
+- **Usage**: `beqz <reg> <target>`
+- **Example**: `beqz c8 done`
+
+### **push** / **pop**
+- **Description**: Pushes a register onto the stack / pops the top of the stack into a register. 8-bit registers use 1 stack byte, 16-bit registers use 2. The stack is 256 bytes.
+- **Usage**: `push <reg>`, `pop <reg>`
+- **Example**: `push a16` then `pop b16`
+
+### **halt**
+- **Description**: Stops the program. Every program needs one, otherwise it faults when it runs off the end.
+- **Usage**: `halt`
+
+### **null** (also `nop`)
+- **Description**: Does nothing.
+- **Usage**: `null`
 
 ---
 
 ## Example Program
 
-Here’s an example of a simple ASM program:
+Counts `a8` from 10 down to 0, pushing every value onto the stack:
 
 ```asm
+; countdown
+        load a8 10
+loop:   push a8
+        beqz a8 done     ; stop once we pushed 0
+        subb a8 1
+        jmp loop
+done:   halt
+```
 
-start:
-load a8 10       ; Load value 10 into register a8
-load b8 5        ; Load value 5 into register b8
-addi a8 5        ; Add 5 to the value in register a8 (a8 becomes 15)
-beq a8 b8 [end]  ; If a8 equals b8, jump to "end"
-jmp [start]      ; Jump back to start (infinite loop)
-end:
-halt             ; Stop program execution
+---
+
+## How to Run
+
+Build with `make` inside `bin/` (or `compile.bat` on Windows), then run `./ASM` and type the file name without `.s` (for example `main`).
+
+- **[F]** runs one instruction at a time.
+- **[R]** runs automatically, speeding up as it goes. Press **[Q]** to stop it, which helps with programs that loop forever.
+- **[Q]** quits.
+
+`make test` builds and runs the headless assembler/CPU tests.
+
+---
+
+## Errors and Faults
+
+**Assembly errors** are found before anything runs. Every bad line is shown in red in the editor panel with the reason, for example:
+
+```
+  2: bogus b8      <-- unknown instruction 'bogus'
+  3: jmp nowhere   <-- unknown label 'nowhere'
+  4: load a8 300   <-- value 300 is out of range (-128..255)
+```
+
+**Faults** happen while running and stop the program with a message in the info panel:
+
+| Fault | Cause |
+|---|---|
+| `ran past the end of the program (missing halt?)` | execution reached the end without a `halt`, or jumped past it |
+| `stack overflow` | `push` with the 256-byte stack full |
+| `stack underflow` | `pop` with nothing on the stack |
+| `unknown opcode` | jumped into something that isn't an instruction |
+
+---
+
+## Instruction Encoding
+
+Every instruction is 4 bytes: an opcode followed by 3 operand bytes. This is what you see in the memory panel.
+
+| Instruction | Opcode | Bytes |
+|---|---|---|
+| `addi rd rs imm` | `0x09` | `op rd rs imm` |
+| `subb rd rs imm` | `0x0A` | `op rd rs imm` |
+| `load r imm` | `0x0B` | `op r imm_lo imm_hi` |
+| `jmp t` | `0x0C` | `op t_lo t_hi 0` |
+| `push r` | `0x0D` | `op r 0 0` |
+| `pop r` | `0x0E` | `op r 0 0` |
+| `beq r1 r2 t` | `0x0F` | `op r1 r2 t` |
+| `bne r1 r2 t` | `0x10` | `op r1 r2 t` |
+| `beqz r t` | `0x11` | `op r t_lo t_hi` |
+| `bgt r1 r2 t` | `0x12` | `op r1 r2 t` |
+| `addr rd rs rt` | `0x13` | `op rd rs rt` |
+| `subr rd rs rt` | `0x14` | `op rd rs rt` |
+| `halt` | `0xF0` | `op 0 0 0` |
+| `null` | `0xFF` | `op 0 0 0` |
+
+Register ids: `a8`=0, `b8`=1, `c8`=2, `d8`=3, `a16`=4, `b16`=5, `af`=6, `bf`=7, `cf`=8.  
+Jump targets are stored as instruction numbers (byte address ÷ 4), little-endian.

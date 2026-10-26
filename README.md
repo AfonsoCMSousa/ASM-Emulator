@@ -34,7 +34,7 @@ I've picked the best features of assembly language while leaving out the complex
 
 - **Ready to implement:**
   - Custom Variables
-  - Float and 16-bit Operations
+  - Float Operations
   - Shift and Other Commands
 
 - ***Far-away-future:***
