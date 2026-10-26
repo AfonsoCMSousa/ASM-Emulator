@@ -42,7 +42,7 @@ $(OUT)$(EXE): $(SRC) $(HDR)
 
 # Headless assembler/CPU tests (no ncurses needed)
 test: $(TEST_OUT)$(EXE)
-	./$(TEST_OUT)$(EXE)
+	"./$(TEST_OUT)$(EXE)"
 
 $(TEST_OUT)$(EXE): $(TEST_SRC) ../src/cpu.h
 	$(CC) $(CFLAGS) $(TEST_SRC) -o $(TEST_OUT)$(EXE)
